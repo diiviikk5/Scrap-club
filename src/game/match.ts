@@ -171,6 +171,7 @@ export class Match implements FighterHost {
   update(dt = FIXED_DT) {
     if (this.paused) return;
     this.events.length = 0;
+    this.world.snapshot();
     // hitstop freezes the simulation but not effects
     if (this.hitstop > 0) {
       this.hitstop -= dt;

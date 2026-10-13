@@ -1033,15 +1033,15 @@ export class Fighter {
       [this.footB, -10, -6],
     ];
     for (const [p, dx, dy] of layout) {
-      p.x = p.px = x + dx * f;
-      p.y = p.py = groundY + dy;
+      p.x = p.px = p.lx = x + dx * f;
+      p.y = p.py = p.ly = groundY + dy;
     }
     if (this.weapon) {
       const wp = this.weapon;
       wp.detach();
       for (const p of wp.particles) {
-        p.x = p.px = this.handM.x;
-        p.y = p.py = this.handM.y - 10;
+        p.x = p.px = p.lx = this.handM.x;
+        p.y = p.py = p.ly = this.handM.y - 10;
       }
       wp.attach(this);
       this.weapon = wp;

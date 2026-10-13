@@ -33,10 +33,16 @@ export class Particle {
   touched: Body | null = null;
   owner: unknown = null;
   tag = '';
+  /** position at the previous fixed tick (for render interpolation) */
+  lx: number;
+  ly: number;
+  /** interpolated render position (filled by the renderer) */
+  rx: number;
+  ry: number;
 
   constructor(x: number, y: number, mass = 1, r = 6) {
-    this.x = this.px = x;
-    this.y = this.py = y;
+    this.x = this.px = this.lx = this.rx = x;
+    this.y = this.py = this.ly = this.ry = y;
     this.invMass = mass > 0 ? 1 / mass : 0;
     this.r = r;
   }
@@ -58,8 +64,8 @@ export class Particle {
   }
   teleport(x: number, y: number) {
     const vx = this.vx, vy = this.vy;
-    this.x = x;
-    this.y = y;
+    this.x = this.lx = x;
+    this.y = this.ly = y;
     this.px = x - vx;
     this.py = y - vy;
   }
@@ -309,6 +315,14 @@ export class World {
     this.bodies.push(b);
     return b;
   }
+  /** Snapshot positions before a fixed tick so rendering can interpolate. */
+  snapshot() {
+    for (const p of this.particles) {
+      p.lx = p.x;
+      p.ly = p.y;
+    }
+  }
+
   removeParticles(set: Set<Particle>) {
     this.particles = this.particles.filter((p) => !set.has(p));
     this.sticks = this.sticks.filter((s) => !set.has(s.a) && !set.has(s.b));
