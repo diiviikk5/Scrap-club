@@ -32,6 +32,8 @@ export interface MatchConfig {
   attract?: boolean;
   /** endless waves of bots against slot 0 */
   gauntlet?: boolean;
+  /** emperor's decrees: a random rule twist every round */
+  decrees?: boolean;
   seed?: number;
 }
 
@@ -50,6 +52,23 @@ interface Rift {
 }
 
 export const FIXED_DT = 1 / 60;
+
+export interface Decree {
+  id: string;
+  name: string;
+  desc: string;
+}
+
+export const DECREES: Decree[] = [
+  { id: 'moon', name: 'Moon Games', desc: 'half gravity' },
+  { id: 'heavy', name: 'Leaden Sandals', desc: 'heavy gravity' },
+  { id: 'ice', name: 'Winter Festival', desc: 'every floor is ice' },
+  { id: 'fish', name: 'Feast of Neptune', desc: 'fish only' },
+  { id: 'glass', name: 'Glass Gladiators', desc: 'everyone starts at 80%' },
+  { id: 'mighty', name: 'Mighty Blows', desc: 'knockback +45%' },
+  { id: 'rain', name: 'Rain of Relics', desc: 'the crowd throws legendaries' },
+  { id: 'brawl', name: 'Fists of Rome', desc: 'no starting weapons' },
+];
 
 export class Match implements FighterHost {
   world = new World();
@@ -165,8 +184,58 @@ export class Match implements FighterHost {
     this.phase = 'intro';
     this.phaseT = 0;
     this.countdown = 3;
-    this.banner = { text: `ROUND ${this.round}`, sub: this.arena.name, t: 0 };
+    this.applyDecree();
+    this.banner = { text: `ROUND ${this.round}`, sub: this.decree ? `Decree: ${this.decree.name} — ${this.decree.desc}` : this.arena.name, t: 0 };
     if (!first) this.event('roundStart', { round: this.round });
+  }
+
+  // --------------------------------------------------------------------- decrees
+
+  decree: Decree | null = null;
+  private baseFriction = new Map<import('../physics/world').Body, number>();
+
+  private applyDecree() {
+    // undo the previous decree
+    this.world.gravity = 2200;
+    for (const [b, f] of this.baseFriction) b.friction = f;
+    this.decree = null;
+    if (!this.cfg.decrees) return;
+    const d = this.rng.pick(DECREES);
+    this.decree = d;
+    switch (d.id) {
+      case 'moon':
+        this.world.gravity = 1150;
+        break;
+      case 'ice':
+        for (const b of this.world.bodies) {
+          if (!this.baseFriction.has(b)) this.baseFriction.set(b, b.friction);
+          b.friction = 0.04;
+        }
+        break;
+      case 'fish':
+        for (const f of this.fighters) {
+          if (f.weapon) f.weapon.remove();
+          const wp = new WeaponEntity(weaponById('fish'), this.world, f.handM.x, f.handM.y);
+          this.weapons.push(wp);
+          wp.attach(f);
+          f.weapon = wp;
+        }
+        break;
+      case 'glass':
+        for (const f of this.fighters) f.damage = 80;
+        break;
+      case 'brawl':
+        for (const f of this.fighters) {
+          if (f.weapon) {
+            f.weapon.remove();
+            f.weapon = null;
+          }
+        }
+        break;
+      case 'heavy':
+        this.world.gravity = 3300;
+        break;
+    }
   }
 
   // --------------------------------------------------------------------- gauntlet
@@ -535,6 +604,7 @@ export class Match implements FighterHost {
     }
     let kb = (95 + v.damage * 7.3) * def.knockback * atkKb * charge * kbMul * (0.75 + 0.25 * speedF);
     if (this.suddenDeath) kb *= 1.15;
+    if (this.decree?.id === 'mighty') kb *= 1.45;
     let stun = 0.08 + kb / 2000;
     if (def.special === 'bonk') stun *= 2.4;
     v.applyKnockback(dx, dy, kb, p, stun);
@@ -890,7 +960,8 @@ export class Match implements FighterHost {
     this.hype = Math.max(0, this.hype - dt * 2.2);
     audio.setCrowd(this.hype / 100);
     if (!this.cfg.gifts || this.phase !== 'fight') return;
-    if (this.hype >= 100 || (this.suddenDeath && this.rng.chance(dt * 0.25))) {
+    const rain = this.decree?.id === 'rain' && this.rng.chance(dt * 0.18);
+    if (this.hype >= 100 || rain || (this.suddenDeath && this.rng.chance(dt * 0.25))) {
       this.hype = 25;
       this.dropGift();
     }
@@ -902,7 +973,8 @@ export class Match implements FighterHost {
     if (!forceRarity) {
       const roll = this.rng.next() * 100;
       const legendChance = this.suddenDeath ? 7 : 3;
-      rarity = roll < legendChance ? 'legendary' : roll < legendChance + 12 ? 'epic' : roll < 45 ? 'rare' : 'common';
+      if (this.decree?.id === 'rain') rarity = roll < 45 ? 'legendary' : 'epic';
+      else rarity = roll < legendChance ? 'legendary' : roll < legendChance + 12 ? 'epic' : roll < 45 ? 'rare' : 'common';
     }
     const cand = pool.filter((w) => w.rarity === rarity);
     const def = this.rng.pick(cand.length ? cand : pool);

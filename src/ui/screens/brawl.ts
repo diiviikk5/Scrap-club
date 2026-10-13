@@ -30,6 +30,7 @@ export interface BrawlState {
   roundTime: number;
   stocks: number;
   gifts: boolean;
+  decrees: boolean;
 }
 
 let saved: BrawlState | null = null;
@@ -49,6 +50,7 @@ function defaultState(): BrawlState {
     roundTime: 60,
     stocks: 1,
     gifts: true,
+    decrees: false,
   };
 }
 
@@ -82,7 +84,7 @@ export function buildConfig(st: BrawlState): { cfg: MatchConfig; devices: Device
     labels.push(cpu ? 'CPU' : `P${++humanN}`);
   });
   return {
-    cfg: { arena: st.arena, slots, teams: st.teams, roundsToWin: st.roundsToWin, roundTime: st.roundTime, stocks: st.stocks, gifts: st.gifts },
+    cfg: { arena: st.arena, slots, teams: st.teams, roundsToWin: st.roundsToWin, roundTime: st.roundTime, stocks: st.stocks, gifts: st.gifts, decrees: st.decrees },
     devices,
     labels,
   };
@@ -162,6 +164,7 @@ export class BrawlSetup extends Screen {
       cycler('Time', [45, 60, 90, 120].map((n) => ({ v: n, label: `${n}s` })), () => st.roundTime, (v) => (st.roundTime = v)),
       cycler('Lives', [1, 2, 3, 5].map((n) => ({ v: n, label: `${n}` })), () => st.stocks, (v) => (st.stocks = v)),
       cycler('Gifts', [{ v: true, label: 'Crowd gifts on' }, { v: false, label: 'Off' }], () => st.gifts, (v) => (st.gifts = v)),
+      cycler('Decrees', [{ v: false, label: 'Classic rules' }, { v: true, label: 'Random each round' }], () => st.decrees, (v) => (st.decrees = v)),
     );
 
     const start = button('FIGHT!', () => this.start(), { icon: '⚔️', cls: 'primary center' });

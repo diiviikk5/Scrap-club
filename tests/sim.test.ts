@@ -87,3 +87,19 @@ describe('fighter physics', () => {
     expect(b.falls).toBeGreaterThan(0);
   });
 });
+
+describe('decrees', () => {
+  it('every decree runs without breaking a match', async () => {
+    const { aiThink } = await import('../src/game/ai');
+    for (let seed = 1; seed <= 16; seed++) {
+      const m = new Match({
+        arena: 'colosseum', teams: false, roundsToWin: 2, roundTime: 30, stocks: 1, gifts: true, decrees: true, seed,
+        slots: [0, 1].map((i) => ({ loadout: { ...DEFAULT_LOADOUT, name: 'B' + i }, team: i, kind: 'cpu' as const, difficulty: 'hard' as const })),
+      });
+      m.aiThink = aiThink;
+      for (let i = 0; i < 60 * 20; i++) m.update();
+      expect(m.decree).not.toBeNull();
+      for (const f of m.fighters) expect(Number.isFinite(f.chest.x)).toBe(true);
+    }
+  }, 60000);
+});
