@@ -7,7 +7,8 @@ import { BrawlSetup } from './brawl';
 import { ArmoryScreen } from './armory';
 import { TournamentList } from './tournament';
 import { OnlineScreen } from './online';
-import { startTraining } from './game';
+import { announceAchievements, startGauntlet, startTraining } from './game';
+import { HallOfFame } from './hall';
 
 export function goldChip() {
   const p = getProfile();
@@ -87,7 +88,8 @@ export class MainMenu extends Screen {
           button('Tournament', () => a.push(new TournamentList(a)), { icon: '🏆', hint: 'Climb the brackets · win legendary relics' }),
           button('Online Arena', () => a.push(new OnlineScreen(a)), { icon: '🌐', hint: 'Host or join a room with a code' }),
           button('Armory', () => a.push(new ArmoryScreen(a)), { icon: '🛡️', hint: 'Weapons, outfits & the shop' }),
-          button('Training Pit', () => startTraining(a), { icon: '🎯', hint: 'Try every weapon on a dummy' }),
+          button('The Gauntlet', () => startGauntlet(a), { icon: '💀', hint: `Endless waves · best: ${p.stats.bestWave}` }),
+          h('div', { class: 'row' }, button('Training', () => startTraining(a), { icon: '🎯', cls: 'small grow' }), button('Hall of Fame', () => a.push(new HallOfFame(a)), { icon: '🏛️', cls: 'small grow' })),
           h('div', { class: 'row' }, button('Settings', () => a.push(new SettingsScreen(a)), { icon: '⚙️', cls: 'small grow' }), button('How to Play', () => a.push(new HelpScreen(a)), { icon: '📜', cls: 'small grow' })),
           h('div', { style: { color: 'var(--muted)', fontSize: '12px', marginTop: '8px' } }, `Gladiator: ${p.loadout.name} · ${p.stats.matches} bouts fought`),
         ),
@@ -119,6 +121,7 @@ export class MainMenu extends Screen {
   }
   onEnter() {
     if (this.app.bgKind !== 'attract') this.app.attract();
+    announceAchievements();
     // refresh chips (gold may have changed)
     const bar = this.el.querySelector('.topbar');
     if (bar) bar.replaceChildren(statChip(), goldChip());

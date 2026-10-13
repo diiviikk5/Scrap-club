@@ -64,7 +64,11 @@ export function drawHud(ctx: Ctx, m: Match, r: Renderer, opts: RenderOpts) {
     ctx.stroke();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    if (m.cfg.training) {
+    if (m.cfg.gauntlet) {
+      ctx.fillStyle = '#ffd23a';
+      ctx.font = `${24 * ui}px Bungee, Impact, sans-serif`;
+      ctx.fillText(`WAVE ${m.wave}`, cx, ty + 22 * ui);
+    } else if (m.cfg.training) {
       ctx.fillStyle = '#ffd23a';
       ctx.font = `${22 * ui}px Bungee, Impact, sans-serif`;
       ctx.fillText('TRAINING', cx, ty + 22 * ui);
@@ -82,7 +86,7 @@ export function drawHud(ctx: Ctx, m: Match, r: Renderer, opts: RenderOpts) {
     // round pips per team
     ctx.font = `${10 * ui}px Rubik, sans-serif`;
     ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.fillText(m.cfg.training ? 'free play' : `ROUND ${m.round}  ·  FIRST TO ${m.cfg.roundsToWin}`, cx, ty + 45 * ui);
+    ctx.fillText(m.cfg.gauntlet ? `${m.stocks[0]} ${m.stocks[0] === 1 ? 'life' : 'lives'} left` : m.cfg.training ? 'free play' : `ROUND ${m.round}  ·  FIRST TO ${m.cfg.roundsToWin}`, cx, ty + 45 * ui);
 
     // crowd favour meter
     const mw = 300 * ui, mh = 10 * ui, my = ty + 66 * ui;
@@ -195,7 +199,7 @@ function drawCard(ctx: Ctx, m: Match, f: Fighter, x: number, y: number, w: numbe
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = f.color;
   ctx.font = `${10 * ui}px Bungee, Impact, sans-serif`;
-  const lab = label ?? `P${f.slot + 1}`;
+  const lab = label ?? (f.isCpu ? 'CPU' : `P${f.slot + 1}`);
   ctx.fillText(lab, tx, y + 18 * ui);
   const lw = ctx.measureText(lab).width + 6 * ui;
   ctx.fillStyle = 'rgba(255,255,255,0.85)';
@@ -232,7 +236,7 @@ function drawCard(ctx: Ctx, m: Match, f: Fighter, x: number, y: number, w: numbe
   // round wins
   const ti = m.teamIndex(f.team);
   ctx.textAlign = 'left';
-  for (let i = 0; i < (m.cfg.training || m.cfg.attract ? 0 : Math.min(5, m.cfg.roundsToWin)); i++) {
+  for (let i = 0; i < (m.cfg.training || m.cfg.attract || m.cfg.gauntlet ? 0 : Math.min(5, m.cfg.roundsToWin)); i++) {
     const px = x + w - 14 * ui - i * 14 * ui, py = y + 42 * ui;
     ctx.beginPath();
     ctx.arc(px, py, 5 * ui, 0, Math.PI * 2);

@@ -28,6 +28,8 @@ export interface Profile {
     tournamentWins: number;
     legendaries: number;
     damage: number;
+    bestWave: number;
+    onlineWins: number;
   };
   settings: Settings;
   /** tournament in progress (serialised) */
@@ -37,6 +39,8 @@ export interface Profile {
   fresh: string[];
   /** ids of tournaments won at least once */
   titles: string[];
+  /** unlocked achievement ids */
+  achievements: string[];
 }
 
 const KEY = 'scrapclub.profile.v1';
@@ -51,12 +55,13 @@ function fresh(): Profile {
     arenas: ['colosseum'],
     loadout: { ...DEFAULT_LOADOUT },
     loadout2: { ...DEFAULT_LOADOUT, name: 'Brutus Bonkus', color: '#4ea8ff', skin: 'skin-umber', helmet: 'helm-bucket', cape: 'cape-blue', weapon: 'plank', shield: 'none', face: 'face-angry' },
-    stats: { matches: 0, wins: 0, kos: 0, falls: 0, tournaments: 0, tournamentWins: 0, legendaries: 0, damage: 0 },
+    stats: { matches: 0, wins: 0, kos: 0, falls: 0, tournaments: 0, tournamentWins: 0, legendaries: 0, damage: 0, bestWave: 0, onlineWins: 0 },
     settings: { ...DEFAULT_SETTINGS },
     tournament: null,
     seenIntro: false,
     fresh: [],
     titles: [],
+    achievements: [],
   };
 }
 

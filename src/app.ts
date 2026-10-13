@@ -10,7 +10,7 @@ import { randomGladiator } from './meta/roster';
 import type { Screen } from './ui/ui';
 import { Rng } from './core/rng';
 
-export type SessionKind = 'brawl' | 'tournament' | 'training' | 'online';
+export type SessionKind = 'brawl' | 'tournament' | 'training' | 'online' | 'gauntlet';
 
 export interface Session {
   kind: SessionKind;

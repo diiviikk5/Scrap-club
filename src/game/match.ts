@@ -8,6 +8,7 @@ import { Fighter, STAND_H, type FighterHost, type HitShape } from './fighter';
 import { Fx } from './fx';
 import { RARITY, WEAPONS, weaponById, type Loadout, type Rarity, type WeaponDef } from './items';
 import { WeaponEntity } from './weapon';
+import { CHAMPIONS, randomGladiator } from '../meta/roster';
 
 export type Difficulty = 'easy' | 'normal' | 'hard' | 'brutal' | 'dummy';
 
@@ -29,6 +30,8 @@ export interface MatchConfig {
   gifts: boolean;
   training?: boolean;
   attract?: boolean;
+  /** endless waves of bots against slot 0 */
+  gauntlet?: boolean;
   seed?: number;
 }
 
@@ -138,7 +141,7 @@ export class Match implements FighterHost {
     this.roundWinner = null;
     this.emperorVerdict = null;
     this.koCam = null;
-    this.stocks = this.fighters.map(() => (this.cfg.training || this.cfg.attract ? 999 : this.cfg.stocks));
+    this.stocks = this.fighters.map((f) => (this.cfg.training || this.cfg.attract ? 999 : this.cfg.gauntlet && f.slot > 0 ? 1 : this.cfg.stocks));
     this.time = first ? 0 : this.time;
     // rebuild arena dynamics state
     this.fighters.forEach((f, i) => {
@@ -164,6 +167,77 @@ export class Match implements FighterHost {
     this.countdown = 3;
     this.banner = { text: `ROUND ${this.round}`, sub: this.arena.name, t: 0 };
     if (!first) this.event('roundStart', { round: this.round });
+  }
+
+  // --------------------------------------------------------------------- gauntlet
+
+  wave = 1;
+  private waveTimer = 0;
+
+  private updateGauntlet(dt: number) {
+    const player = this.fighters[0];
+    if (!player.alive && this.stocks[0] <= 0) {
+      this.phase = 'matchEnd';
+      this.phaseT = 0;
+      this.matchWinner = 1;
+      this.banner = { text: 'THE GAUNTLET ENDS', sub: `you survived ${this.wave - 1} wave${this.wave === 2 ? '' : 's'}`, t: 0, color: '#ff7a5a' };
+      this.emperorVerdict = 'down';
+      this.event('matchEnd', { team: 1 });
+      return;
+    }
+    const bots = this.fighters.filter((f) => f.team !== player.team);
+    if (this.waveTimer > 0) {
+      this.waveTimer -= dt;
+      if (this.waveTimer <= 0) this.spawnWave();
+      return;
+    }
+    if (bots.every((b) => !b.alive)) {
+      // wave cleared: tidy up the fallen and prepare the next one
+      for (const b of bots) {
+        if (b.weapon) b.weapon.idle = 999;
+        b.destroy();
+      }
+      this.fighters = this.fighters.filter((f) => f.team === player.team);
+      this.wave++;
+      this.waveTimer = 2.2;
+      player.damage = Math.max(0, player.damage - 30);
+      this.banner = { text: `WAVE ${this.wave}`, sub: this.wave % 5 === 0 ? 'a champion enters the arena' : 'heal 30% · more challengers approach', t: 0, color: this.wave % 5 === 0 ? '#ffb52e' : '#ffd23a' };
+      this.addHype(30, player);
+      audio.cheer(1.2);
+      this.event('waveClear', { wave: this.wave - 1 });
+    }
+  }
+
+  private spawnWave() {
+    const w = this.wave;
+    const boss = w % 5 === 0;
+    const count = boss ? 1 : Math.min(3, 1 + Math.floor((w - 1) / 3));
+    const tier = Math.min(3, Math.floor((w - 1) / 3));
+    for (let i = 0; i < count; i++) {
+      const slot = this.cfg.slots.length;
+      const g = boss ? CHAMPIONS[(w / 5 - 1) % CHAMPIONS.length] : randomGladiator(this.rng.int(1, 1e9), tier);
+      const loadout = { ...g.loadout, color: ['#4ea8ff', '#5fe08a', '#c77dff', '#ff9a3c'][(w + i) % 4] };
+      const difficulty = boss ? 'brutal' : (['easy', 'normal', 'hard', 'brutal'] as const)[Math.min(3, Math.floor((w - 1) / 2.5))];
+      this.cfg.slots.push({ loadout, team: 1, kind: 'cpu', difficulty });
+      const x = this.arena.cx + (i - (count - 1) / 2) * 240 + this.rng.range(-40, 40);
+      const f = new Fighter(this.world, loadout, x, this.arena.floorY - 500, x < this.fighters[0].chest.x ? 1 : -1, 1, slot);
+      f.isCpu = true;
+      f.invuln = 1;
+      this.fighters.push(f);
+      this.inputs.push(emptyControls());
+      this.stocks[slot] = 1;
+      if (loadout.weapon !== 'fists') {
+        const wp = new WeaponEntity(weaponById(loadout.weapon), this.world, f.handM.x, f.handM.y);
+        this.weapons.push(wp);
+        wp.attach(f);
+        f.weapon = wp;
+      }
+      this.fx.ring(x, this.arena.floorY - 300, 140, loadout.color, 0.6, 8);
+    }
+    if (boss) {
+      audio.gong();
+      this.fx.popup(this.fighters[this.fighters.length - 1].name.toUpperCase(), this.arena.cx, this.arena.floorY - 420, '#ffb52e', 40, 2);
+    }
   }
 
   // --------------------------------------------------------------------- update
@@ -262,6 +336,10 @@ export class Match implements FighterHost {
       case 'fight': {
         this.roundClock += dt;
         if (this.cfg.attract || this.cfg.training) break;
+        if (this.cfg.gauntlet) {
+          this.updateGauntlet(dt);
+          break;
+        }
         if (!this.suddenDeath && this.roundClock > this.cfg.roundTime) {
           this.suddenDeath = true;
           this.banner = { text: 'SUDDEN DEATH', sub: 'everyone is fragile now', t: 0, color: '#ff4b3a' };

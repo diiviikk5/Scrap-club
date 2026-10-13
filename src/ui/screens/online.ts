@@ -8,7 +8,7 @@ import { NetSocket } from '../../net/socket';
 import { earn, getProfile, saveProfile } from '../../meta/save';
 import { randomGladiator } from '../../meta/roster';
 import { button, cycler, h, keycap, nav, Screen, toast } from '../ui';
-import { GameScreen } from './game';
+import { announceAchievements, GameScreen } from './game';
 import { MainMenu } from './menus';
 
 interface LobbyPlayer {
@@ -319,8 +319,12 @@ export class OnlineScreen extends Screen {
       earn(gold);
       const p = getProfile();
       p.stats.matches++;
-      if (won) p.stats.wins++;
+      if (won) {
+        p.stats.wins++;
+        p.stats.onlineWins++;
+      }
       saveProfile();
+      announceAchievements();
       toast(winners.length ? `${winners.map((f) => f.name).join(' & ')} won the bout! +${gold} denarii` : `No victor. +${gold} denarii`, won ? 'gold' : '');
     }
     net.dispose();

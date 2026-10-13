@@ -7,7 +7,7 @@ import { TOURNAMENTS, arenaName, createTournament, playerMatch, reportPlayerResu
 import { button, h, keycap, nav, Screen, toast } from '../ui';
 import { drawLoadoutThumb } from '../thumbs';
 import { goldChip, MainMenu } from './menus';
-import { grantRewards, showVersus } from './game';
+import { announceAchievements, grantRewards, showVersus } from './game';
 
 const TROPHIES = ['🥉', '🥈', '🥇', '👑'];
 
@@ -232,6 +232,7 @@ export class BracketScreen extends Screen {
     this.app.push(new TournamentList(this.app));
     this.app.push(new BracketScreen(this.app));
     toast(won ? `Victory! +${rw.gold} denarii` : `Defeated. +${rw.gold} denarii for your trouble.`, won ? 'gold' : '');
+    announceAchievements();
     if (T.done && T.won) toast(`🏆 Tournament won! +${T.prizeGold} denarii${T.prizeItem ? ` & ${itemName(T.prizeItem)}` : ''}`, 'gold');
   }
 

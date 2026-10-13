@@ -5,6 +5,7 @@ import { getProfile, owns, saveProfile, spend } from '../../meta/save';
 import { button, h, keycap, nav, Screen, toast } from '../ui';
 import { drawItemThumb } from '../thumbs';
 import { goldChip } from './menus';
+import { announceAchievements } from './game';
 
 type Tab = 'weapon' | 'shield' | 'helmet' | 'armor' | 'cape' | 'skin' | 'face';
 const TABS: { id: Tab; label: string }[] = [
@@ -279,6 +280,7 @@ export class ArmoryScreen extends Screen {
             else audio.coin();
             toast(`${it.name} acquired!`, 'gold');
             this.equip(it.id);
+            announceAchievements();
           },
         },
       ]);

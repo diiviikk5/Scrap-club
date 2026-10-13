@@ -5,7 +5,10 @@ import { RARITY, WEAPONS, weaponById, itemName } from '../../game/items';
 import { WeaponEntity } from '../../game/weapon';
 import { onAnyKey, type NavAction } from '../../input/input';
 import { earn, getProfile, grant, owns, saveProfile } from '../../meta/save';
+import { checkAchievements } from '../../meta/achievements';
+import { toast } from '../ui';
 import { button, h, keycap, Screen } from '../ui';
+import { randomGladiator } from '../../meta/roster';
 import { drawLoadoutThumb } from '../thumbs';
 import { MainMenu, SettingsScreen } from './menus';
 
@@ -306,12 +309,14 @@ export class ResultsScreen extends Screen {
     private onSetup?: () => void,
   ) {
     super('results');
-    this.rewards = session.kind === 'training' ? { gold: 0, relics: [], lines: [] } : grantRewards(m, session, relics);
+    this.rewards = session.kind === 'training' ? { gold: 0, relics: [], lines: [] } : session.kind === 'gauntlet' ? gauntletRewards(m) : grantRewards(m, session, relics);
+    announceAchievements();
   }
   build() {
     const m = this.m;
     const winners = m.fighters.filter((f) => f.team === m.matchWinner);
-    const title = winners.length === 0 ? 'NO VICTOR' : m.cfg.teams ? `TEAM ${winners[0].name.toUpperCase().split(' ')[0]} WINS` : `${winners[0].name.toUpperCase()} WINS`;
+    const cleared = m.wave - 1;
+    const title = this.session.kind === 'gauntlet' ? `SURVIVED ${cleared} WAVE${cleared === 1 ? '' : 'S'}` : winners.length === 0 ? 'NO VICTOR' : m.cfg.teams ? `TEAM ${winners[0].name.toUpperCase().split(' ')[0]} WINS` : `${winners[0].name.toUpperCase()} WINS`;
     const sorted = [...m.fighters].sort((a, b) => Number(b.team === m.matchWinner) - Number(a.team === m.matchWinner) || b.kos - a.kos || b.dealt - a.dealt);
     const table = h(
       'table',
@@ -335,7 +340,7 @@ export class ResultsScreen extends Screen {
       this.canvases.push({ c, i: m.fighters.indexOf(f) });
       podium.append(c);
     });
-    const rematch = button('Rematch', () => showVersus(this.app, this.session, this.onSetup), { icon: '↻', cls: 'primary' });
+    const rematch = button(this.session.kind === 'gauntlet' ? 'Run it back' : 'Rematch', () => (this.session.kind === 'gauntlet' ? startGauntlet(this.app) : showVersus(this.app, this.session, this.onSetup)), { icon: '↻', cls: 'primary' });
     rematch.dataset.autofocus = '';
     const rw = this.rewards;
     this.el.append(
@@ -343,7 +348,7 @@ export class ResultsScreen extends Screen {
       h(
         'div',
         { class: 'page' },
-        h('div', { class: 'page-head' }, h('div', {}, h('div', { class: 'page-title' }, title), h('div', { class: 'page-sub' }, m.emperorVerdict === 'up' ? 'The emperor shows mercy. The crowd roars.' : 'The emperor is pleased. Mostly.'))),
+        h('div', { class: 'page-head' }, h('div', {}, h('div', { class: 'page-title' }, title), h('div', { class: 'page-sub' }, this.session.kind === 'gauntlet' ? `Best ever: ${getProfile().stats.bestWave} waves.` : m.emperorVerdict === 'up' ? 'The emperor shows mercy. The crowd roars.' : 'The emperor is pleased. Mostly.'))),
         h(
           'div',
           { class: 'results' },
@@ -434,4 +439,57 @@ export function startTraining(app: App) {
   });
   void RARITY;
   app.push(new GameScreen(app, session));
+}
+
+// ------------------------------------------------------------------ gauntlet
+
+export function gauntletRewards(m: Match): Rewards {
+  const p = getProfile();
+  const cleared = m.wave - 1;
+  const player = m.fighters.find((f) => f.slot === 0);
+  const kos = player?.kos ?? 0;
+  const lines = [`Waves cleared ×${cleared} · ${cleared * 40}`, `Ring-outs ×${kos} · ${kos * 10}`];
+  let gold = cleared * 40 + kos * 10;
+  if (cleared > p.stats.bestWave) {
+    lines.push(`New personal best! · ${50 + cleared * 10}`);
+    gold += 50 + cleared * 10;
+    p.stats.bestWave = cleared;
+  }
+  p.stats.matches++;
+  p.stats.kos += kos;
+  p.stats.damage += Math.round(player?.dealt ?? 0);
+  earn(gold);
+  saveProfile();
+  return { gold, relics: [], lines };
+}
+
+export function announceAchievements() {
+  for (const a of checkAchievements()) {
+    toast(`${a.icon} Achievement: ${a.name} (+${a.reward} denarii)`, 'gold');
+    audio.legendary();
+  }
+}
+
+export function startGauntlet(app: App) {
+  const p = getProfile();
+  const first = randomGladiator(Math.floor(Math.random() * 1e9), 0, '#4ea8ff');
+  const session: Session = {
+    kind: 'gauntlet',
+    cfg: {
+      arena: 'colosseum',
+      slots: [
+        { loadout: { ...p.loadout }, team: 0, kind: 'human' },
+        { loadout: first.loadout, team: 1, kind: 'cpu', difficulty: 'easy' },
+      ],
+      teams: false,
+      roundsToWin: 1,
+      roundTime: 9999,
+      stocks: 3,
+      gifts: true,
+      gauntlet: true,
+    },
+    devices: ['kb1', 'cpu'],
+    labels: ['YOU', 'FOE'],
+  };
+  showVersus(app, session);
 }
