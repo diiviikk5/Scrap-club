@@ -815,7 +815,14 @@ export class Match implements FighterHost {
     this.fx.addShake(26);
     this.fx.flash = 0.5;
     this.fx.flashColor = f.color;
-    this.slowmo = 0.7;
+    // the blow that decides the round gets the full cinematic treatment
+    const remainingTeams = new Set(this.fighters.filter((o) => o.alive || this.stocks[o.slot] > 0).map((o) => o.team));
+    const final = !this.cfg.attract && !this.cfg.training && !this.cfg.gauntlet && remainingTeams.size <= 1;
+    this.slowmo = final ? 1.4 : 0.7;
+    if (final) {
+      this.fx.punch += 0.12;
+      this.fx.popup('FINAL BLOW', this.arena.cx, this.arena.floorY - 360, '#ffd23a', 52, 1.6);
+    }
     this.koCam = f;
     audio.ringOut();
     if (how === 'water') audio.splash();

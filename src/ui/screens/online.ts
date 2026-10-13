@@ -294,7 +294,7 @@ export class OnlineScreen extends Screen {
     this.inMatch = true;
     this.app.reset(new MainMenu(this.app));
     const m = this.app.startMatch(session);
-    const net = new NetGame(m, this.sock!, host, myIdx, 'kb1');
+    const net = new NetGame(m, this.sock!, host, myIdx, 'solo');
     session.net = net;
     net.onDisconnect = (r) => this.onLost(r);
     let finished = false;

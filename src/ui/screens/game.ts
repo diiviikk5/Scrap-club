@@ -425,7 +425,7 @@ export function startTraining(app: App) {
       gifts: true,
       training: true,
     },
-    devices: ['kb1', 'cpu'],
+    devices: ['solo', 'cpu'],
     labels: ['P1', 'DUMMY'],
   };
   // gamepad users: let pad 1 also drive P1 if no keyboard input
@@ -495,7 +495,7 @@ export function startGauntlet(app: App) {
       gifts: true,
       gauntlet: true,
     },
-    devices: ['kb1', 'cpu'],
+    devices: ['solo', 'cpu'],
     labels: ['YOU', 'FOE'],
   };
   showVersus(app, session);

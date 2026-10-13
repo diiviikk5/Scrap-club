@@ -203,11 +203,9 @@ export class BracketScreen extends Screen {
         stocks: 1,
         gifts: true,
       },
-      devices: ['kb1', 'cpu'],
+      devices: ['solo', 'cpu'],
       labels: ['YOU', opp.title.toUpperCase().slice(0, 14)],
     };
-    // gamepad players: route pad 1 to the player if one is connected
-    if (navigator.getGamepads?.()[0]) session.devices[0] = 'kb1';
     showVersus(this.app, session, undefined, (m) => this.afterMatch(session, m));
   }
 

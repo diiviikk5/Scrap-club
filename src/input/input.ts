@@ -38,7 +38,7 @@ export function decodeControls(n: number): Controls {
   };
 }
 
-export type DeviceId = 'kb1' | 'kb2' | 'pad0' | 'pad1' | 'pad2' | 'pad3' | 'cpu' | 'net' | 'none';
+export type DeviceId = 'kb1' | 'kb2' | 'pad0' | 'pad1' | 'pad2' | 'pad3' | 'solo' | 'cpu' | 'net' | 'none';
 
 const keys = new Set<string>();
 const pressedThisFrame = new Set<string>();
@@ -109,6 +109,21 @@ export function getPads(): (Gamepad | null)[] {
 
 const DEAD = 0.25;
 export function sampleDevice(dev: DeviceId): Controls {
+  if (dev === 'solo') {
+    // single-player modes: keyboard, touch and every gamepad all drive the same gladiator
+    const c = sampleDevice('kb1');
+    for (let i = 0; i < 4; i++) {
+      const p = sampleDevice(`pad${i}` as DeviceId);
+      if (p.mx !== 0) c.mx = p.mx;
+      if (p.my !== 0) c.my = p.my;
+      c.jump ||= p.jump;
+      c.attack ||= p.attack;
+      c.block ||= p.block;
+      c.grab ||= p.grab;
+      c.dash ||= p.dash;
+    }
+    return c;
+  }
   const c = emptyControls();
   if (dev === 'kb1' || dev === 'kb2') {
     const m = KEYMAPS[dev];
