@@ -5,7 +5,7 @@ import { PLAYER_COLORS, type Loadout } from '../../game/items';
 import type { MatchConfig, SlotConfig } from '../../game/match';
 import { NetGame } from '../../net/netgame';
 import { NetSocket } from '../../net/socket';
-import { getProfile } from '../../meta/save';
+import { earn, getProfile, saveProfile } from '../../meta/save';
 import { randomGladiator } from '../../meta/roster';
 import { button, cycler, h, keycap, nav, Screen, toast } from '../ui';
 import { GameScreen } from './game';
@@ -53,7 +53,7 @@ export class OnlineScreen extends Screen {
         'div',
         { class: 'page' },
         h('div', { class: 'page-head' }, button('Back', () => this.back(), { icon: '◀', cls: 'small back-btn' }), h('div', {}, h('div', { class: 'page-title' }, 'Online Arena'), h('div', { class: 'page-sub' }, 'Up to 4 gladiators. The host\'s machine runs the fight.'))),
-        h('div', { style: { display: 'flex', justifyContent: 'center', flex: '1', alignItems: 'flex-start', paddingTop: '2vh' } }, body),
+        h('div', { style: { display: 'flex', justifyContent: 'center', flex: '1', alignItems: 'flex-start', paddingTop: '1vh', overflowY: 'auto', minHeight: '0' } }, body),
       ),
     );
   }
@@ -310,6 +310,19 @@ export class OnlineScreen extends Screen {
   private backToLobby(net: NetGame) {
     if (!this.inMatch) return;
     this.inMatch = false;
+    const m = this.app.match;
+    if (m) {
+      const winners = m.fighters.filter((f) => f.team === m.matchWinner);
+      const me = m.fighters[net.localSlot];
+      const won = !!me && me.team === m.matchWinner;
+      const gold = won ? 120 : 50;
+      earn(gold);
+      const p = getProfile();
+      p.stats.matches++;
+      if (won) p.stats.wins++;
+      saveProfile();
+      toast(winners.length ? `${winners.map((f) => f.name).join(' & ')} won the bout! +${gold} denarii` : `No victor. +${gold} denarii`, won ? 'gold' : '');
+    }
     net.dispose();
     this.app.endMatch();
     this.app.reset(new MainMenu(this.app));
