@@ -466,7 +466,7 @@ export class Match implements FighterHost {
     // ---- blocking
     let kbMul = 1;
     if (v.isBlockingFrom(a.chest.x)) {
-      const parryWindow = 0.14 + v.shield.parry;
+      const parryWindow = 0.1 + v.shield.parry;
       if (this.time - v.blockStart < parryWindow) {
         // PARRY: attacker is staggered
         a.applyKnockback(-Math.sign(v.chest.x - a.chest.x) || 1, -0.3, 520, a.handM, 0.8);

@@ -162,8 +162,10 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
   if (threat && Math.abs(dy) < 120) {
     const r = Math.random();
     if (r < T.block) {
+      // bots can't time parries perfectly: they usually raise the guard early and hold it
+      if (target.atkPhase === 'strike' && Math.random() > T.block * 0.5) return { ...out };
       out.block = true;
-      b.holdBlock = 0.25 + Math.random() * 0.25;
+      b.holdBlock = 0.35 + Math.random() * 0.45;
       out.mx = 0;
       out.attack = false;
       // face the attacker

@@ -247,7 +247,7 @@ export class ArmoryScreen extends Screen {
       );
     }
     const s = SHIELDS.find((x) => x.id === id);
-    if (s) return h('div', { class: 'bars' }, bar('Block', s.block), bar('Parry window', (0.14 + s.parry) / 0.26), bar('Weight', s.mass / 2.4));
+    if (s) return h('div', { class: 'bars' }, bar('Block', s.block), bar('Parry window', (0.1 + s.parry) / 0.22), bar('Weight', s.mass / 2.4));
     const c = cosmeticById(id);
     if (c && (c.kbResist || c.speed || c.perk))
       return h(
