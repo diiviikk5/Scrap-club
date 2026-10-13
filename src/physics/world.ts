@@ -134,8 +134,18 @@ export class AngleLimit {
     const wSum = a.invMass + c.invMass || 1;
     const rc = corr * (c.invMass / wSum);
     const ra = -corr * (a.invMass / wSum);
+    // remember centre of mass so the correction is momentum-neutral
+    const ma = a.invMass ? 1 / a.invMass : 0, mb = b.invMass ? 1 / b.invMass : 0, mc = c.invMass ? 1 / c.invMass : 0;
+    const mt = ma + mb + mc || 1;
+    const cx0 = (a.x * ma + b.x * mb + c.x * mc) / mt, cy0 = (a.y * ma + b.y * mb + c.y * mc) / mt;
     rotAround(c, b, rc);
     rotAround(a, b, ra);
+    const dx = (a.x * ma + b.x * mb + c.x * mc) / mt - cx0, dy = (a.y * ma + b.y * mb + c.y * mc) / mt - cy0;
+    for (const p of [a, b, c]) {
+      if (p.invMass === 0) continue;
+      p.x -= dx;
+      p.y -= dy;
+    }
   }
 }
 
@@ -309,10 +319,38 @@ export class World {
     if (i >= 0) this.sticks.splice(i, 1);
   }
 
+  /** Current substep duration; velocities are stored as displacement per substep. */
+  subDt = 1 / 120;
+
   step(dt: number) {
     const sdt = (dt * this.timeScale) / this.substeps;
     if (sdt <= 0) return;
+    if (Math.abs(sdt - this.subDt) > 1e-9) {
+      // rescale stored verlet velocities so slow-mo keeps momentum consistent
+      const k = sdt / this.subDt;
+      for (const p of this.particles) {
+        p.px = p.x - (p.x - p.px) * k;
+        p.py = p.y - (p.y - p.py) * k;
+      }
+      this.subDt = sdt;
+    }
     for (let s = 0; s < this.substeps; s++) this.substep(sdt);
+  }
+
+  /** Velocity helpers in px / second. */
+  velX(p: Particle) {
+    return (p.x - p.px) / this.subDt;
+  }
+  velY(p: Particle) {
+    return (p.y - p.py) / this.subDt;
+  }
+  setV(p: Particle, vx: number, vy: number) {
+    p.px = p.x - vx * this.subDt;
+    p.py = p.y - vy * this.subDt;
+  }
+  addV(p: Particle, vx: number, vy: number) {
+    p.px -= vx * this.subDt;
+    p.py -= vy * this.subDt;
   }
 
   private substep(dt: number) {
