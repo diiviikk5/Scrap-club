@@ -50,6 +50,7 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
   out.jump = false;
   out.grab = false;
   out.dash = false;
+  out.taunt = false;
   if (b.holdAttack > 0) {
     b.holdAttack -= dt;
     out.attack = true;
@@ -275,6 +276,9 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
   if (m.rt.wind !== 0 && f.onGround && m.groundAt(f.chest.x + Math.sign(m.rt.wind) * 110) === null) out.mx = -Math.sign(m.rt.wind);
   // stay off the edge
   if (m.groundAt(f.chest.x + out.mx * 60) === null && f.onGround && !out.jump) out.mx = 0;
+  // showboat when there is breathing room
+  out.taunt = false;
+  if (f.onGround && adx > 520 && !f.attack && Math.random() < 0.012 * T.aggression) out.taunt = true;
   // random hop for liveliness
   if (f.onGround && Math.random() < 0.02 * T.aggression && b.lastJump > 1) {
     out.jump = true;

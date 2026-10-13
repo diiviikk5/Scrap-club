@@ -7,9 +7,10 @@ export interface Controls {
   block: boolean;
   grab: boolean;
   dash: boolean;
+  taunt: boolean;
 }
 
-export const emptyControls = (): Controls => ({ mx: 0, my: 0, jump: false, attack: false, block: false, grab: false, dash: false });
+export const emptyControls = (): Controls => ({ mx: 0, my: 0, jump: false, attack: false, block: false, grab: false, dash: false, taunt: false });
 
 /** Compact encoding for the network (one int + two signed bytes). */
 export function encodeControls(c: Controls): number {
@@ -22,7 +23,8 @@ export function encodeControls(c: Controls): number {
     (c.grab ? 8 : 0) |
     (c.dash ? 16 : 0) |
     (qx << 5) |
-    (qy << 9)
+    (qy << 9) |
+    (c.taunt ? 1 << 13 : 0)
   );
 }
 
@@ -35,6 +37,7 @@ export function decodeControls(n: number): Controls {
     dash: !!(n & 16),
     mx: (((n >> 5) & 15) - 8) / 7,
     my: (((n >> 9) & 15) - 8) / 7,
+    taunt: !!(n & (1 << 13)),
   };
 }
 
@@ -82,6 +85,7 @@ export const KEYMAPS = {
     block: ['KeyG', 'KeyK'],
     grab: ['KeyH', 'KeyL'],
     dash: ['ShiftLeft', 'KeyQ'],
+    taunt: ['KeyE'],
   },
   kb2: {
     left: ['ArrowLeft'],
@@ -93,6 +97,7 @@ export const KEYMAPS = {
     block: ['Numpad2', 'Slash'],
     grab: ['Numpad3', 'Comma'],
     dash: ['Numpad0', 'ShiftRight'],
+    taunt: ['Numpad4', 'Quote'],
   },
 } as const;
 
@@ -121,6 +126,7 @@ export function sampleDevice(dev: DeviceId): Controls {
       c.block ||= p.block;
       c.grab ||= p.grab;
       c.dash ||= p.dash;
+      c.taunt ||= p.taunt;
     }
     return c;
   }
@@ -134,6 +140,7 @@ export function sampleDevice(dev: DeviceId): Controls {
     c.block = anyOf(m.block);
     c.grab = anyOf(m.grab);
     c.dash = anyOf(m.dash);
+    c.taunt = anyOf(m.taunt);
     if (dev === 'kb1') {
       if (touchState.mx !== 0) c.mx = touchState.mx;
       if (touchState.my !== 0) c.my = touchState.my;
@@ -142,6 +149,7 @@ export function sampleDevice(dev: DeviceId): Controls {
       c.block ||= touchState.block;
       c.grab ||= touchState.grab;
       c.dash ||= touchState.dash;
+      c.taunt ||= touchState.taunt;
     }
     return c;
   }
@@ -161,6 +169,7 @@ export function sampleDevice(dev: DeviceId): Controls {
     c.grab = b(1) || b(3);
     c.block = b(4) || b(5) || b(6);
     c.dash = b(7) || b(10);
+    c.taunt = b(8) || b(11);
     return c;
   }
   return c;
@@ -168,9 +177,9 @@ export function sampleDevice(dev: DeviceId): Controls {
 
 /** Human readable binding hints for the HUD / help screen. */
 export const BINDING_HINTS: Record<string, Record<string, string>> = {
-  kb1: { move: 'A / D', jump: 'W / Space', attack: 'F / J', block: 'G / K', grab: 'H / L', dash: 'Shift / Q', drop: 'S' },
-  kb2: { move: '← / →', jump: '↑', attack: 'Num1 / .', block: 'Num2 / /', grab: 'Num3 / ,', dash: 'Num0 / RShift', drop: '↓' },
-  pad: { move: 'L-Stick', jump: 'A', attack: 'X', block: 'LB / RB', grab: 'B / Y', dash: 'RT', drop: 'Down' },
+  kb1: { move: 'A / D', jump: 'W / Space', attack: 'F / J', block: 'G / K', grab: 'H / L', dash: 'Shift / Q', taunt: 'E', drop: 'S' },
+  kb2: { move: '← / →', jump: '↑', attack: 'Num1 / .', block: 'Num2 / /', grab: 'Num3 / ,', dash: 'Num0 / RShift', taunt: "Num4 / '", drop: '↓' },
+  pad: { move: 'L-Stick', jump: 'A', attack: 'X', block: 'LB / RB', grab: 'B / Y', dash: 'RT', taunt: 'Select', drop: 'Down' },
 };
 
 /** Menu-level navigation (keyboard + any gamepad), edge-triggered. */

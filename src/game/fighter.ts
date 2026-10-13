@@ -146,6 +146,8 @@ export class Fighter {
   age = 0;
   emote = '';
   emoteT = 0;
+  /** seconds left in a taunt */
+  tauntT = 0;
   /** Stats for results screen */
   dealt = 0;
   kos = 0;
@@ -440,11 +442,21 @@ export class Fighter {
       else if (this.pressed('attack')) this.throwGrabbed(host);
     }
 
+    // taunt: flex at the crowd (you're wide open while you do it)
+    if (this.tauntT > 0) {
+      this.tauntT -= dt;
+      if (!canAct || this.attack) this.tauntT = 0;
+    } else if (canAct && this.pressed('taunt') && this.onGround && !this.attack && !this.blocking && !this.grabbing) {
+      this.tauntT = 0.9;
+      host.event('taunt', { f: this });
+    }
+
     // attacks
     this.updateAttack(dt, host, canAct);
 
     // ---------------- locomotion
     let speed = 330 * this.stats.speed;
+    if (this.tauntT > 0) speed = 0;
     if (this.blocking) speed *= 0.35;
     if (this.attack && this.atkPhase === 'charge') speed *= 0.45;
     if (this.crouch) speed *= 0.3;
@@ -599,7 +611,12 @@ export class Fighter {
     const t = this.age;
     const breathe = Math.sin(t * 3 + this.group) * 1.5;
 
-    if (this.grabbing) {
+    if (this.tauntT > 0) {
+      const pump = Math.sin(this.tauntT * 18) * 8;
+      main = { e: [10, 14], h: [8, 38 + pump] };
+      off = { e: [-12, 12], h: [-14, 34 - pump] };
+      kMain = kOff = 0.4 * m;
+    } else if (this.grabbing) {
       main = { e: [16, -6], h: [32, -4] };
       off = { e: [14, -8], h: [30, -6] };
     } else if (this.blocking) {

@@ -53,6 +53,7 @@ Share `http://<your-ip>:8787` with your friends. One player hosts a room and the
 | Dash | Burst of speed with brief invulnerability, usable once in the air |
 | Jump | Double jump. A double jump redirects your momentum, which is how you recover after being launched |
 | Down + Jump | Drop through wooden platforms |
+| Taunt | Flex for crowd favour. Getting hit mid-taunt takes +30% damage (PUNISHED!) |
 
 Heavy weapons drag their wielder along with the swing. Weapons clash when blades meet, flails hit with whatever momentum the chain has, and thrown weapons spin through the air.
 
@@ -66,6 +67,7 @@ Heavy weapons drag their wielder along with the swing. Weapons clash when blades
 | Block | G / K | Num2 / / | LB / RB |
 | Grab / throw | H / L | Num3 / , | B / Y |
 | Dash | Shift / Q | Num0 / Right Shift | RT |
+| Taunt | E | Num4 / ' | Select |
 | Pause | Esc / P | Esc / P | Start |
 
 Menus work with the mouse, keyboard or gamepad. Phones and tablets get an on-screen joystick and buttons.

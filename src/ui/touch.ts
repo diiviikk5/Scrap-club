@@ -41,7 +41,7 @@ export function touchControls(): HTMLElement | null {
   stick.addEventListener('touchend', endStick);
   stick.addEventListener('touchcancel', endStick);
 
-  const btn = (label: string, key: 'jump' | 'attack' | 'block' | 'grab' | 'dash') => {
+  const btn = (label: string, key: 'jump' | 'attack' | 'block' | 'grab' | 'dash' | 'taunt') => {
     const b = h('div', { class: 'tc-btn' }, label);
     const on = (e: Event) => {
       e.preventDefault();
@@ -58,10 +58,10 @@ export function touchControls(): HTMLElement | null {
     b.addEventListener('touchcancel', off);
     return b;
   };
-  return h('div', { class: 'touch-controls' }, stick, h('div', { class: 'tc-btns' }, btn('GRAB', 'grab'), btn('BLOCK', 'block'), btn('DASH', 'dash'), h('div', {}), btn('JUMP', 'jump'), btn('ATTACK', 'attack')));
+  return h('div', { class: 'touch-controls' }, stick, h('div', { class: 'tc-btns' }, btn('GRAB', 'grab'), btn('BLOCK', 'block'), btn('DASH', 'dash'), btn('TAUNT', 'taunt'), btn('JUMP', 'jump'), btn('ATTACK', 'attack')));
 }
 
 export function resetTouch() {
   touchState.mx = touchState.my = 0;
-  touchState.jump = touchState.attack = touchState.block = touchState.grab = touchState.dash = false;
+  touchState.jump = touchState.attack = touchState.block = touchState.grab = touchState.dash = touchState.taunt = false;
 }

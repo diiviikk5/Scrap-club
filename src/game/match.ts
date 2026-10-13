@@ -100,6 +100,7 @@ export class Match implements FighterHost {
   rifts: Rift[] = [];
   private pairCd = new Map<string, number>();
   private hazardCd = new Map<Fighter, number>();
+  private lastTaunt = new Map<Fighter, number>();
   paused = false;
   /** Optional external AI hook: returns controls for cpu fighters */
   aiThink: ((f: Fighter, m: Match, dt: number) => Controls) | null = null;
@@ -586,6 +587,12 @@ export class Match implements FighterHost {
       }
     }
 
+    if (v.tauntT > 0) {
+      dmg *= 1.3;
+      v.tauntT = 0;
+      this.fx.popup('PUNISHED!', v.head.x, v.head.y - 70, '#ff7a5a', 30);
+      this.addHype(10, a);
+    }
     v.damage = Math.min(999, v.damage + dmg);
     a.dealt += dmg;
     v.lastHitBy = a;
@@ -1033,6 +1040,18 @@ export class Match implements FighterHost {
         audio.whoosh(1.4);
         audio.ooh();
         this.addHype(12, f);
+        break;
+      case 'taunt':
+        if (f) {
+          const lines = ['COME ON!', 'IS THAT ALL?', 'ARE YOU NOT ENTERTAINED?', 'SCRAP ME, COWARD!', 'FOR ROME!', 'TOO EASY', 'SHOW ME YOUR MOVES', '*FLEXES*'];
+          this.fx.popup(this.rng.pick(lines), f.head.x, f.head.y - 50, '#fff3c4', 24, 1.1);
+          const t = this.time;
+          if (t - (this.lastTaunt.get(f) ?? -99) > 3) {
+            this.lastTaunt.set(f, t);
+            this.addHype(9, f);
+            audio.cheer(0.5);
+          }
+        }
         break;
       case 'burn':
         if (f) this.fx.emit('ember', f.chest.x, f.chest.y, 5, { speed: 120, color: '#ff8a2e', size: 5, gravity: -400, life: 0.6 });

@@ -239,6 +239,7 @@ export class HelpScreen extends Screen {
               h('li', {}, h('b', {}, 'Grab'), ': pick up weapons, throw your weapon, or (unarmed) grab a foe and press attack to toss them.'),
               h('li', {}, h('b', {}, 'Dash'), ' has brief invulnerability. You get one double jump (Icarus Wings give two).'),
               h('li', {}, 'Press ', h('b', {}, 'down + jump'), ' to drop through wooden platforms.'),
+              h('li', {}, h('b', {}, 'Taunt'), ' to win the crowd\'s favour — but a hit while taunting is a 30% bonus ', h('i', {}, 'PUNISH'), '.'),
             ),
           ),
           h(
