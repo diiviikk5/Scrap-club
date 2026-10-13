@@ -9,7 +9,7 @@ import { Fx } from './fx';
 import { RARITY, WEAPONS, weaponById, type Loadout, type Rarity, type WeaponDef } from './items';
 import { WeaponEntity } from './weapon';
 
-export type Difficulty = 'easy' | 'normal' | 'hard' | 'brutal';
+export type Difficulty = 'easy' | 'normal' | 'hard' | 'brutal' | 'dummy';
 
 export interface SlotConfig {
   loadout: Loadout;
@@ -138,7 +138,7 @@ export class Match implements FighterHost {
     this.roundWinner = null;
     this.emperorVerdict = null;
     this.koCam = null;
-    this.stocks = this.fighters.map(() => (this.cfg.training ? 999 : this.cfg.stocks));
+    this.stocks = this.fighters.map(() => (this.cfg.training || this.cfg.attract ? 999 : this.cfg.stocks));
     this.time = first ? 0 : this.time;
     // rebuild arena dynamics state
     this.fighters.forEach((f, i) => {
@@ -779,7 +779,7 @@ export class Match implements FighterHost {
     for (let i = this.weapons.length - 1; i >= 0; i--) {
       const w = this.weapons[i];
       const lost = w.grip.y > this.arena.killY + 400 || Math.abs(w.grip.x - this.arena.cx) > this.arena.blastX + 400;
-      const stale = !w.holder && w.idle > (w.def.rarity === 'legendary' ? 30 : 16);
+      const stale = !this.cfg.training && !w.holder && w.idle > (w.def.rarity === 'legendary' ? 30 : 16);
       if (lost || stale || w.dead) {
         if (!w.dead) w.remove();
         this.weapons.splice(i, 1);

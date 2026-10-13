@@ -15,6 +15,7 @@ interface Tuning {
 }
 
 const TUNING: Record<Difficulty, Tuning> = {
+  dummy: { reaction: 0.3, aggression: 0, block: 0, dodge: 0, charge: 0, throwChance: 0, recover: 1, jitter: 0 },
   easy: { reaction: 0.34, aggression: 0.45, block: 0.08, dodge: 0.05, charge: 0.15, throwChance: 0.05, recover: 0.75, jitter: 0.35 },
   normal: { reaction: 0.2, aggression: 0.65, block: 0.28, dodge: 0.12, charge: 0.3, throwChance: 0.1, recover: 0.92, jitter: 0.2 },
   hard: { reaction: 0.11, aggression: 0.8, block: 0.5, dodge: 0.22, charge: 0.4, throwChance: 0.14, recover: 1, jitter: 0.1 },
@@ -81,6 +82,11 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
     return { ...out };
   }
 
+  if (diff === 'dummy') {
+    out.mx = 0;
+    out.attack = false;
+    return { ...out };
+  }
   if (b.t > 0) return { ...out };
   b.t = T.reaction * (0.7 + Math.random() * 0.6);
 

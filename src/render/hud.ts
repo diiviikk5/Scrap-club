@@ -229,7 +229,7 @@ function drawCard(ctx: Ctx, m: Match, f: Fighter, x: number, y: number, w: numbe
   const ti = m.teamIndex(f.team);
   ctx.textAlign = 'left';
   for (let i = 0; i < m.cfg.roundsToWin; i++) {
-    const px = x + w - 14 * ui - i * 14 * ui, py = y + 16 * ui;
+    const px = x + w - 14 * ui - i * 14 * ui, py = y + 42 * ui;
     ctx.beginPath();
     ctx.arc(px, py, 5 * ui, 0, Math.PI * 2);
     ctx.fillStyle = i < (m.wins[ti] ?? 0) ? '#ffd23a' : 'rgba(255,255,255,0.15)';

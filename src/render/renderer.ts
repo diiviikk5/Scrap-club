@@ -124,6 +124,16 @@ export class Renderer {
     this.cam.zoom = lerp(this.cam.zoom, z, 1 - Math.exp(-dt * 3));
   }
 
+  /** Frame a world point at a given horizontal screen fraction (menus / armory showcase). */
+  focusCamera(x: number, y: number, zoomMul: number, screenFrac: number, dt: number) {
+    const z = this.baseZoom * zoomMul;
+    const k = 1 - Math.exp(-dt * 5);
+    this.cam.zoom = lerp(this.cam.zoom, z, k);
+    const tx = x - (screenFrac * this.w - this.w / 2) / this.cam.zoom;
+    this.cam.x = lerp(this.cam.x, tx, k);
+    this.cam.y = lerp(this.cam.y, y, k);
+  }
+
   snapCamera(m: Match) {
     this.cam.x = m.arena.cx;
     this.cam.y = m.arena.floorY - 220;

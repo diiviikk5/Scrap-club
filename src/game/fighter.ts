@@ -122,7 +122,11 @@ export class Fighter {
 
   weapon: WeaponEntity | null = null;
   weaponDef: WeaponDef;
-  shield: ShieldDef;
+  baseShield: ShieldDef;
+  /** two-handed weapons need both hands: the shield is slung on the back */
+  get shield(): ShieldDef {
+    return this.weapon?.def.twoHanded ? NO_SHIELD : this.baseShield;
+  }
   stats: ReturnType<typeof loadoutStats>;
 
   grabbing: Fighter | null = null;
@@ -162,7 +166,7 @@ export class Fighter {
     this.facing = facing;
     this.stats = loadoutStats(loadout);
     this.weaponDef = weaponById(loadout.weapon);
-    this.shield = shieldById(loadout.shield);
+    this.baseShield = shieldById(loadout.shield);
     if (this.stats.perks.has('wings')) this.maxAirJumps = 2;
 
     const f = facing;
@@ -956,9 +960,9 @@ export class Fighter {
     const up = c.my < -0.5, down = c.my > 0.5;
     const back = c.mx !== 0 && Math.sign(c.mx) !== this.facing;
     const dir = back ? -this.facing : this.facing;
-    const pow = 1 + t.damage / 110;
-    const vx = (up ? 220 : down ? 300 : 820) * dir * pow;
-    const vy = up ? -1100 * pow : down ? 700 : -480 * pow;
+    const pow = 0.75 + t.damage / 160;
+    const vx = (up ? 200 : down ? 280 : 720) * dir * pow;
+    const vy = up ? -1000 * pow : down ? 700 : -420 * pow;
     t.setVelAll(vx, vy);
     t.stun = Math.max(t.stun, 0.6 + t.damage / 250);
     t.damage += 7;
@@ -1059,6 +1063,7 @@ export class Fighter {
   }
 }
 
+const NO_SHIELD = shieldById('none');
 const GUARD_POSE: ArmPose = { e: [10, -18], h: [24, -10] };
 const OFF_GUARD: ArmPose = { e: [4, -20], h: [14, -10] };
 
