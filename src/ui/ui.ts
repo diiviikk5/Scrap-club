@@ -130,6 +130,8 @@ export abstract class Screen {
   focused: HTMLElement | null = null;
   /** screens that keep the game canvas interactive (in-match HUD) */
   passThrough = false;
+  /** draw the in-match HUD while this screen is on top */
+  showHud = false;
 
   constructor(cls = '') {
     this.el = h('div', { class: `screen ${cls.split(' ').filter(Boolean).map((c) => (c === 'pass-through' ? c : 'scr-' + c)).join(' ')}` });

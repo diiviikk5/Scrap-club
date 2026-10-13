@@ -3,7 +3,7 @@ import { COSMETICS, PLAYER_COLORS, SHIELDS, WEAPONS, type Loadout, type Rarity }
 import type { Difficulty } from '../game/match';
 
 const FIRST = ['Maximus', 'Brutus', 'Spartacus', 'Crixus', 'Gannicus', 'Flamma', 'Priscus', 'Verus', 'Tetraites', 'Carpophorus', 'Commodus', 'Hermes', 'Marcus', 'Lucius', 'Gaius', 'Titus', 'Varro', 'Oenomaus', 'Agron', 'Nasir', 'Barca', 'Ashur', 'Tullius', 'Septimus', 'Quintus', 'Decimus', 'Aurelia', 'Livia', 'Octavia', 'Julia', 'Drusilla', 'Valeria', 'Achillia', 'Amazonia', 'Mevia', 'Sabina'];
-const LAST = ['Scrappus', 'Bonkus', 'Flopicus', 'Maximus', 'the Wobbly', 'Ironjaw', 'Sandfoot', 'the Unready', 'Longarm', 'Thunderbelly', 'the Loud', 'Kneecapper', 'Grimbolt', 'the Merciful', 'the Merciless', 'Noodlearms', 'Pitborn', 'the Fourth', 'Lionfeeder', 'Dustbiter', 'the Magnificent', 'Rustbucket', 'Halfhelm', 'the Bold'];
+const LAST = ['Bonkus', 'Flopicus', 'Maximus', 'the Wobbly', 'Ironjaw', 'Sandfoot', 'the Unready', 'Longarm', 'Thunderbelly', 'the Loud', 'Kneecapper', 'Grimbolt', 'the Merciful', 'the Merciless', 'Noodlearms', 'Pitborn', 'the Fourth', 'Lionfeeder', 'Dustbiter', 'the Magnificent', 'Rustbucket', 'Halfhelm', 'the Bold'];
 const TITLES = ['Pit Rookie', 'Sand Scrapper', 'Crowd Pleaser', 'Lion Tamer', 'Champion of Capua', 'The Emperor\'s Pet', 'Undefeated (allegedly)', 'Retired Baker', 'Former Senator', 'Escaped Goat Herder', 'Veteran of 3 Bouts', 'Legend of the Pit', 'Bronze Fist', 'Gods\' Favourite'];
 
 function pickByRarity<T extends { rarity: Rarity; id: string }>(rng: Rng, items: T[], maxRarity: Rarity): T {

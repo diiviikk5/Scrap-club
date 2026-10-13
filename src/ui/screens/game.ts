@@ -92,6 +92,7 @@ const ARENA_NAMES: Record<string, string> = {
 
 export class GameScreen extends Screen {
   passThrough = true;
+  showHud = true;
   private ended = false;
   private offKey: (() => void) | null = null;
   private trainingBox: HTMLElement | null = null;
@@ -172,6 +173,7 @@ export class GameScreen extends Screen {
 // ------------------------------------------------------------------ pause
 
 class PauseScreen extends Screen {
+  showHud = true;
   constructor(
     private app: App,
     private session: Session,

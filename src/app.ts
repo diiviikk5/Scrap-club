@@ -258,7 +258,7 @@ export class App {
       } else this.renderer.updateCamera(m, dt, !this.match && this.bgKind === 'attract');
       const alpha = net && !net.isHost ? net.alpha : this.acc / FIXED_DT;
       this.renderer.render(m, alpha, dt, {
-        hud: !!this.match,
+        hud: !!this.match && !!this.top?.showHud,
         labels: this.session?.labels,
         quality: settings.quality,
         shake: settings.shake,
