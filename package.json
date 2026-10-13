@@ -1,0 +1,24 @@
+{
+  "name": "scrap-club",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Scrap Club — a ragdoll gladiator brawler for the browser",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "server": "node server/server.js",
+    "start": "npm run build && node server/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "~5.9",
+    "vite": "^7.3.7",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
+}
