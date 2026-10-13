@@ -173,25 +173,9 @@ function drawCard(ctx: Ctx, m: Match, f: Fighter, x: number, y: number, w: numbe
   ctx.save();
   roundRect(ctx, x + 4 * ui, y + 4 * ui, h - 8 * ui, h - 8 * ui, 10 * ui);
   ctx.clip();
-  const s = 0.62 * ui;
-  ctx.translate(x + h / 2, y + h * 1.32);
-  ctx.scale(s, s);
-  drawFighter(ctx, standingPose(0, 0, 1, t + f.slot), {
-    loadout: f.loadout,
-    facing: 1,
-    hurt: f.stun > 0.25,
-    dead,
-    charging: 0,
-    blink: f.blink < 0,
-    flash: 0,
-    burning: false,
-    frozen: false,
-    shocked: false,
-    ghost: false,
-    blocking: false,
-    t,
-    alpha: 1,
-  });
+  const size = Math.ceil(h - 8 * ui);
+  const portrait = getPortrait(f, size, ui, t, dead);
+  ctx.drawImage(portrait, x + 4 * ui, y + 4 * ui, size, size);
   ctx.restore();
 
   const tx = x + h + 4 * ui;
@@ -313,4 +297,52 @@ function drawBanner(ctx: Ctx, m: Match, W: number, H: number, ui: number) {
 export function roundRect(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.roundRect(x, y, Math.max(0, w), h, Math.min(r, h / 2, Math.max(0, w) / 2));
+}
+
+interface PortraitCache {
+  c: HTMLCanvasElement;
+  t: number;
+  key: string;
+}
+const portraits = new WeakMap<Fighter, PortraitCache>();
+
+/** Portraits are re-rendered a few times per second instead of every frame. */
+function getPortrait(f: Fighter, size: number, ui: number, t: number, dead: boolean): HTMLCanvasElement {
+  let pc = portraits.get(f);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const px = Math.ceil(size * dpr);
+  const key = `${px}|${dead}|${f.stun > 0.25}`;
+  if (!pc) {
+    pc = { c: document.createElement('canvas'), t: -1, key: '' };
+    portraits.set(f, pc);
+  }
+  if (pc.key !== key || t - pc.t > 0.15) {
+    pc.key = key;
+    pc.t = t;
+    const c = pc.c;
+    if (c.width !== px) c.width = c.height = px;
+    const g = c.getContext('2d')!;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, size, size);
+    const s = 0.62 * ui;
+    g.translate(size / 2, size * 1.35);
+    g.scale(s, s);
+    drawFighter(g, standingPose(0, 0, 1, t + f.slot), {
+      loadout: f.loadout,
+      facing: 1,
+      hurt: f.stun > 0.25,
+      dead,
+      charging: 0,
+      blink: f.blink < 0,
+      flash: 0,
+      burning: false,
+      frozen: false,
+      shocked: false,
+      ghost: false,
+      blocking: false,
+      t,
+      alpha: 1,
+    });
+  }
+  return pc.c;
 }

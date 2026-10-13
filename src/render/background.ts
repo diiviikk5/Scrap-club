@@ -46,10 +46,21 @@ function layer(W: number, H: number, top: number, factor: number, scale: number,
   return { canvas: c, factor, W, H, top, scale };
 }
 
+/** Bake the arena's atmospheric fog into a layer (only where the layer has pixels). */
+function fogLayer(L: Layer, fog: string) {
+  const ctx = L.canvas.getContext('2d')!;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'source-atop';
+  ctx.fillStyle = fog;
+  ctx.fillRect(0, 0, L.canvas.width, L.canvas.height);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
 export function getArenaArt(a: ArenaDef): ArenaArt {
   let art = cache.get(a.id);
   if (!art) {
     art = buildArt(a);
+    for (const L of art.layers) fogLayer(L, a.theme.fog);
     cache.set(a.id, art);
   }
   return art;

@@ -3,7 +3,7 @@ import type { Body } from '../physics/world';
 import type { Match } from '../game/match';
 import type { Fighter } from '../game/fighter';
 import { RARITY } from '../game/items';
-import { drawFighter, drawRarityGlow, drawWeapon, OUTLINE, type Ctx, type FighterLook, type Pose } from './draw';
+import { drawFighter, drawRarityGlow, drawWeapon, glow, OUTLINE, type Ctx, type FighterLook, type Pose } from './draw';
 import { getArenaArt, type ArenaArt } from './background';
 import { drawHud } from './hud';
 
@@ -229,7 +229,7 @@ export class Renderer {
     g.addColorStop(0.1, rgba(th.sun, 0.35));
     g.addColorStop(1, rgba(th.sun, 0));
     ctx.fillStyle = g;
-    ctx.fillRect(0, 0, this.w, this.h);
+    ctx.fillRect(Math.max(0, sx - r), Math.max(0, sy - r), r * 2, r * 2);
     if (m.arena.id === 'olympus') {
       // god rays
       ctx.save();
@@ -259,9 +259,6 @@ export class Renderer {
     for (const L of art.layers) {
       const { z, ox, oy } = this.layerTransform(L.factor);
       ctx.drawImage(L.canvas, ox - (L.W / 2) * z, oy + L.top * z, L.W * z, L.H * z);
-      // atmospheric fog between layers
-      ctx.fillStyle = m.arena.theme.fog;
-      ctx.fillRect(0, 0, this.w, this.h);
     }
   }
 
@@ -313,9 +310,6 @@ export class Renderer {
     // the emperor
     if (art.emperor) this.drawEmperor(m, art.emperor.x, art.emperor.y);
     ctx.restore();
-    // shade the crowd slightly so the arena pops
-    ctx.fillStyle = rgba(m.arena.theme.skyBottom, 0.12);
-    ctx.fillRect(0, 0, this.w, this.h);
   }
 
   private drawEmperor(m: Match, x: number, y: number) {
@@ -416,16 +410,7 @@ export class Renderer {
   private torch(x: number, y: number, s: number) {
     const ctx = this.ctx;
     const fl = 0.85 + Math.sin(this.t * 13 + x) * 0.08 + Math.sin(this.t * 31 + x * 2) * 0.05;
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    const g = ctx.createRadialGradient(x, y, 2, x, y, 120 * s * fl);
-    g.addColorStop(0, 'rgba(255,190,90,0.55)');
-    g.addColorStop(1, 'rgba(255,120,30,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(x, y, 120 * s * fl, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    glow(ctx, x, y, 120 * s * fl, '#ffb050', 0.7);
     ctx.fillStyle = '#ffcf5a';
     ctx.beginPath();
     ctx.moveTo(x - 7 * s, y + 6 * s);
@@ -1000,18 +985,7 @@ export class Renderer {
     };
     // charge glow
     if (f.atkPhase === 'charge' && f.charge > 0.05) {
-      const ctx = this.ctx;
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      const r = 40 + f.charge * 50;
-      const g = ctx.createRadialGradient(f.handM.rx, f.handM.ry, 2, f.handM.rx, f.handM.ry, r);
-      g.addColorStop(0, rgba('#ffd23a', 0.5 * f.charge));
-      g.addColorStop(1, rgba('#ff7a1a', 0));
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(f.handM.rx, f.handM.ry, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
+      glow(this.ctx, f.handM.rx, f.handM.ry, 40 + f.charge * 50, '#ffb02e', 0.7 * f.charge);
     }
     // speed lines when launched
     const sp = Math.hypot(m.world.velX(f.chest), m.world.velY(f.chest));

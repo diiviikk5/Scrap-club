@@ -96,6 +96,34 @@ function torsoPath(ctx: Ctx, p: Pose, wTop: number, wBot: number, extendBottom =
   ctx.closePath();
 }
 
+
+// ------------------------------------------------------------------ glow sprites
+
+const glowCache = new Map<string, HTMLCanvasElement>();
+/** Additive soft glow using a cached radial sprite (much cheaper than per-frame gradients). */
+export function glow(ctx: Ctx, x: number, y: number, r: number, color: string, alpha = 1) {
+  if (r <= 0 || alpha <= 0.01) return;
+  let c = glowCache.get(color);
+  if (!c) {
+    c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d')!;
+    const grad = g.createRadialGradient(64, 64, 2, 64, 64, 64);
+    grad.addColorStop(0, rgba(color, 1));
+    grad.addColorStop(0.35, rgba(color, 0.45));
+    grad.addColorStop(1, rgba(color, 0));
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 128, 128);
+    glowCache.set(color, c);
+  }
+  const prevOp = ctx.globalCompositeOperation, prevA = ctx.globalAlpha;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = prevA * Math.min(1, alpha);
+  ctx.drawImage(c, x - r, y - r, r * 2, r * 2);
+  ctx.globalCompositeOperation = prevOp;
+  ctx.globalAlpha = prevA;
+}
+
 // ------------------------------------------------------------------ fighter
 
 export function drawFighter(ctx: Ctx, p: Pose, look: FighterLook) {
@@ -181,12 +209,7 @@ export function drawFighter(ctx: Ctx, p: Pose, look: FighterLook) {
   // status overlays
   if (look.burning) {
     const fl = 0.5 + Math.sin(look.t * 30) * 0.2;
-    const g = ctx.createRadialGradient(p.chest.rx, p.chest.ry, 4, p.chest.rx, p.chest.ry, 60);
-    g.addColorStop(0, `rgba(255,170,40,${0.45 * fl})`);
-    g.addColorStop(1, 'rgba(255,80,0,0)');
-    ctx.fillStyle = g;
-    circle(ctx, p.chest.rx, p.chest.ry, 60);
-    ctx.fill();
+    glow(ctx, p.chest.rx, p.chest.ry, 60, '#ff9a2a', 0.6 * fl);
   }
   if (look.shocked) {
     ctx.strokeStyle = '#bff3ff';
@@ -957,14 +980,8 @@ function drawCape(ctx: Ctx, look: FighterLook, style: string, c: string[]) {
     ctx.stroke();
   }
   if (style === 'phoenix') {
-    ctx.globalCompositeOperation = 'lighter';
     const e = pts[pts.length - 1];
-    const g = ctx.createRadialGradient(e.x, e.y, 2, e.x, e.y, 40);
-    g.addColorStop(0, 'rgba(255,180,40,0.5)');
-    g.addColorStop(1, 'rgba(255,80,0,0)');
-    ctx.fillStyle = g;
-    circle(ctx, e.x, e.y, 40);
-    ctx.fill();
+    glow(ctx, e.x, e.y, 40, '#ffa020', 0.6);
   }
   ctx.restore();
 }
@@ -1013,18 +1030,10 @@ export function drawWeapon(ctx: Ctx, def: WeaponDef, gx: number, gy: number, tx:
   ctx.lineJoin = 'round';
 
   if (def.glow) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
     const pulse = 0.55 + Math.sin(t * 5) * 0.2;
     const mx = def.moveset === 'flail' && chain?.length ? chain[chain.length - 1].rx : (gx + tx) / 2;
     const my = def.moveset === 'flail' && chain?.length ? chain[chain.length - 1].ry : (gy + ty) / 2;
-    const g = ctx.createRadialGradient(mx, my, 4, mx, my, L * 0.8 + 20);
-    g.addColorStop(0, rgba(def.glow, 0.45 * pulse));
-    g.addColorStop(1, rgba(def.glow, 0));
-    ctx.fillStyle = g;
-    circle(ctx, mx, my, L * 0.8 + 20);
-    ctx.fill();
-    ctx.restore();
+    glow(ctx, mx, my, L * 0.8 + 20, def.glow, 0.55 * pulse);
   }
 
   if (def.moveset === 'flail' && chain && chain.length) {
@@ -1488,12 +1497,7 @@ export function drawRarityGlow(ctx: Ctx, x: number, y: number, rarity: keyof typ
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
   const pulse = 0.6 + Math.sin(t * 4) * 0.25;
-  const g = ctx.createRadialGradient(x, y, 2, x, y, r);
-  g.addColorStop(0, rgba(col, 0.5 * pulse));
-  g.addColorStop(1, rgba(col, 0));
-  ctx.fillStyle = g;
-  circle(ctx, x, y, r);
-  ctx.fill();
+  glow(ctx, x, y, r, col, 0.6 * pulse);
   if (rarity === 'legendary' || rarity === 'epic') {
     // light pillar
     const h = rarity === 'legendary' ? 520 : 260;
