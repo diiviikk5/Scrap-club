@@ -98,6 +98,10 @@ export const KEYMAPS = {
 
 const anyOf = (codes: readonly string[]) => codes.some((c) => keys.has(c));
 
+/** On-screen touch controls feed into player 1. */
+export const touchState: Controls = emptyControls();
+export const isTouchDevice = () => typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
 export function getPads(): (Gamepad | null)[] {
   if (!navigator.getGamepads) return [];
   return Array.from(navigator.getGamepads());
@@ -115,6 +119,15 @@ export function sampleDevice(dev: DeviceId): Controls {
     c.block = anyOf(m.block);
     c.grab = anyOf(m.grab);
     c.dash = anyOf(m.dash);
+    if (dev === 'kb1') {
+      if (touchState.mx !== 0) c.mx = touchState.mx;
+      if (touchState.my !== 0) c.my = touchState.my;
+      c.jump ||= touchState.jump;
+      c.attack ||= touchState.attack;
+      c.block ||= touchState.block;
+      c.grab ||= touchState.grab;
+      c.dash ||= touchState.dash;
+    }
     return c;
   }
   if (dev.startsWith('pad')) {

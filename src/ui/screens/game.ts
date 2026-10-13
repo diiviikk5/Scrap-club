@@ -9,6 +9,7 @@ import { checkAchievements } from '../../meta/achievements';
 import { toast } from '../ui';
 import { button, h, keycap, Screen } from '../ui';
 import { randomGladiator } from '../../meta/roster';
+import { resetTouch, touchControls } from '../touch';
 import { drawLoadoutThumb } from '../thumbs';
 import { MainMenu, SettingsScreen } from './menus';
 
@@ -111,6 +112,11 @@ export class GameScreen extends Screen {
     super('ingame pass-through');
   }
   build() {
+    const tc = touchControls();
+    if (tc) this.el.append(tc);
+    const pause = h('button', { class: 'chip', style: { position: 'absolute', top: '14px', right: '14px', cursor: 'pointer', border: '1px solid var(--line)' }, title: 'Pause (Esc)' }, '❚❚');
+    pause.addEventListener('click', () => this.handleNav('pause'));
+    this.el.append(pause);
     if (this.session.kind === 'training') {
       this.trainingBox = h(
         'div',
@@ -143,6 +149,7 @@ export class GameScreen extends Screen {
   }
   onExit() {
     this.offKey?.();
+    resetTouch();
   }
   handleNav(a: NavAction) {
     if (a === 'pause' || a === 'back') {
