@@ -102,7 +102,8 @@ export class BracketScreen extends Screen {
     const pm = playerMatch(T);
     const bracket = h('div', { class: 'bracket' });
     T.rounds.forEach((round, ri) => {
-      const col = h('div', { class: 'b-round' }, h('div', { class: 'b-round-title' }, roundName(T, ri).toUpperCase()));
+      const inner = h('div', { class: 'b-round-inner' });
+      const col = h('div', { class: 'b-round' }, h('div', { class: 'b-round-title' }, roundName(T, ri).toUpperCase()), inner);
       for (const m of round) {
         const ent = (id: number) => {
           if (id < 0) return h('div', { class: 'b-ent', style: { '--c': '#444' } as any }, h('span', { style: { color: 'var(--muted)' } }, 'TBD'));
@@ -110,7 +111,7 @@ export class BracketScreen extends Screen {
           const cls = ['b-ent', e.isPlayer ? 'you' : '', m.winner !== null && m.winner !== id ? 'out' : '', m.winner === id ? 'win' : ''].join(' ');
           return h('div', { class: cls, style: { '--c': e.loadout.color } as any }, e.isPlayer ? `★ ${e.loadout.name}` : e.loadout.name, h('span', { class: 'tt' }, e.isPlayer ? 'YOU' : e.title));
         };
-        col.append(h('div', { class: `b-match ${m === pm ? 'current' : ''}` }, ent(m.a), ent(m.b), h('div', { class: 'b-arena' }, arenaName(m.arena))));
+        inner.append(h('div', { class: `b-match ${m === pm ? 'current' : ''}` }, ent(m.a), ent(m.b), h('div', { class: 'b-arena' }, arenaName(m.arena))));
       }
       bracket.append(col);
     });
@@ -121,6 +122,7 @@ export class BracketScreen extends Screen {
         'div',
         { class: 'b-round', style: { minWidth: '180px', flex: '0.7', alignItems: 'center' } },
         h('div', { class: 'b-round-title' }, 'CHAMPION'),
+        h('div', { class: 'spacer' }),
         h('div', { style: { fontSize: '64px', textAlign: 'center', filter: 'drop-shadow(0 4px 0 #000)' } }, TROPHIES[T.tier]),
         champ ? h('div', { style: { fontFamily: 'var(--font-display)', color: champ.isPlayer ? 'var(--gold)' : 'var(--text)', textAlign: 'center' } }, champ.loadout.name) : h('div', { style: { color: 'var(--muted)', textAlign: 'center' } }, '???'),
         T.prizeItem ? h('div', { style: { fontSize: '12px', textAlign: 'center', color: RARITY[itemRarity(T.prizeItem)].color } }, `Prize: ${T.prizeGold} denarii`, h('br'), `+ ${itemName(T.prizeItem)}`) : null,

@@ -195,11 +195,15 @@ function drawCard(ctx: Ctx, m: Match, f: Fighter, x: number, y: number, w: numbe
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = f.color;
   ctx.font = `${10 * ui}px Bungee, Impact, sans-serif`;
-  ctx.fillText(label ?? `P${f.slot + 1}`, tx, y + 18 * ui);
+  const lab = label ?? `P${f.slot + 1}`;
+  ctx.fillText(lab, tx, y + 18 * ui);
+  const lw = ctx.measureText(lab).width + 6 * ui;
   ctx.fillStyle = 'rgba(255,255,255,0.85)';
   ctx.font = `600 ${11 * ui}px Rubik, sans-serif`;
-  const nm = f.name.length > 17 ? f.name.slice(0, 16) + '…' : f.name;
-  ctx.fillText(nm, tx + 30 * ui, y + 18 * ui);
+  let nm = f.name;
+  const maxW = w - (tx - x) - lw - 10 * ui;
+  while (nm.length > 3 && ctx.measureText(nm).width > maxW) nm = nm.slice(0, -2) + '…';
+  ctx.fillText(nm, tx + lw, y + 18 * ui);
 
   // damage
   const d = Math.round(f.damage);
@@ -228,7 +232,7 @@ function drawCard(ctx: Ctx, m: Match, f: Fighter, x: number, y: number, w: numbe
   // round wins
   const ti = m.teamIndex(f.team);
   ctx.textAlign = 'left';
-  for (let i = 0; i < m.cfg.roundsToWin; i++) {
+  for (let i = 0; i < (m.cfg.training || m.cfg.attract ? 0 : Math.min(5, m.cfg.roundsToWin)); i++) {
     const px = x + w - 14 * ui - i * 14 * ui, py = y + 42 * ui;
     ctx.beginPath();
     ctx.arc(px, py, 5 * ui, 0, Math.PI * 2);

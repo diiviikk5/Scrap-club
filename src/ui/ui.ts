@@ -132,7 +132,7 @@ export abstract class Screen {
   passThrough = false;
 
   constructor(cls = '') {
-    this.el = h('div', { class: `screen ${cls}` });
+    this.el = h('div', { class: `screen ${cls.split(' ').filter(Boolean).map((c) => (c === 'pass-through' ? c : 'scr-' + c)).join(' ')}` });
     (this.el as any)._screen = this;
   }
 
