@@ -597,9 +597,10 @@ body {
 .arena-card .lock {
   position: absolute;
   inset: 0;
-  background: rgba(10, 6, 4, 0.66);
+  background: rgba(10, 6, 4, 0.45);
   display: grid;
-  place-items: center;
+  place-items: start end;
+  padding: 8px 10px;
   font-family: var(--font-display);
   font-size: 13px;
   color: var(--gold);
@@ -1431,5 +1432,47 @@ body {
   }
   .help {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------------------------------------------ short screens */
+
+.page {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-dark) transparent;
+}
+
+@media (max-height: 860px) {
+  .page {
+    padding: 2vh 3vw 1.6vh;
+    gap: 10px;
+  }
+  .page-title {
+    font-size: clamp(24px, 2.8vw, 38px);
+  }
+  .slot {
+    min-height: 0;
+    padding: 10px;
+    gap: 7px;
+  }
+  .slot canvas {
+    height: 92px;
+  }
+  .arena-card {
+    height: 92px;
+  }
+  .btn {
+    padding: 11px 18px 11px 16px;
+    font-size: 18px;
+  }
+  .menu-col {
+    gap: 9px;
+  }
+  .menu-col .logo {
+    margin-bottom: 12px;
+  }
+  .tour-card {
+    min-height: 0;
   }
 }

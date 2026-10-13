@@ -116,7 +116,7 @@ export class BrawlSetup extends Screen {
         { class: `arena-card ${st.arena === a.id ? 'sel' : ''}`, style: { background: `linear-gradient(180deg, ${a.theme.skyTop}, ${a.theme.skyBottom} 55%, ${a.theme.near})` } },
         h('div', { class: 'nm' }, a.name),
         h('div', { class: 'sb' }, a.subtitle),
-        locked ? h('div', { class: 'lock' }, h('div', {}, '🔒', h('br'), `${a.price} denarii`)) : null,
+        locked ? h('div', { class: 'lock' }, h('div', {}, `🔒 ${a.price}`)) : null,
       );
       card.title = a.desc;
       nav(card, {
