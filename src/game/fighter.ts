@@ -349,7 +349,7 @@ export class Fighter {
       this.blocking = false;
     } else {
       const target = this.grabbedBy ? 0.15 : 1;
-      this.muscle = Math.min(target, this.muscle + dt * (this.muscle < 0.4 ? 1.6 : 3.5));
+      this.muscle = Math.min(target, this.muscle + dt * (this.muscle < 0.4 ? 3.2 : 5));
     }
 
     const w = this.world;
@@ -369,7 +369,7 @@ export class Fighter {
       if (!wasGround && this.vy > 500) host.event('land', { f: this, v: this.vy });
     } else this.groundT += dt;
 
-    const canAct = m > 0.6 && this.stun <= 0 && !this.grabbedBy;
+    const canAct = m > 0.45 && this.stun <= 0 && !this.grabbedBy;
 
     // facing
     if (canAct && c.mx !== 0 && (!this.attack || this.atkPhase === 'wind' || this.atkPhase === 'charge') && !this.blocking) {
@@ -425,7 +425,10 @@ export class Fighter {
         this.groundT = 1;
       } else if (this.airJumps > 0) {
         this.airJumps--;
-        this.doJump(780, host, true);
+        // double jumps redirect momentum towards the held direction (recovery!)
+        const tvx = c.mx * 380 * this.stats.speed;
+        for (const p of this.parts) w.setV(p, w.velX(p) + (tvx - w.velX(p)) * 0.7, w.velY(p));
+        this.doJump(800, host, true);
       }
     }
 

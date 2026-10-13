@@ -66,7 +66,13 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
   const ground = m.groundAt(f.chest.x);
   const offStage = ground === null || f.chest.y > A.floorY + 40;
   if (offStage && f.stun <= 0) {
-    const stageX = nearestStageX(m, f.chest.x);
+    let stageX = nearestStageX(m, f.chest.x);
+    // mid-leap over a gap: keep going if there is ground ahead
+    const vxNow = m.world.velX(f.chest);
+    if (Math.abs(vxNow) > 120 && f.chest.y < A.floorY - 30) {
+      const ahead = m.groundAt(f.chest.x + Math.sign(vxNow) * 160);
+      if (ahead !== null) stageX = f.chest.x + Math.sign(vxNow) * 160;
+    }
     const dir = Math.sign(stageX - f.chest.x) || 1;
     out.mx = dir;
     out.my = 0;
@@ -74,7 +80,8 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
     out.block = false;
     const vy = m.world.velY(f.chest);
     if (Math.random() < T.recover) {
-      if (vy > -100 && f.airJumps > 0 && b.lastJump > 0.25) {
+      const low = f.chest.y > A.floorY - 70 || Math.abs(stageX - f.chest.x) > 260;
+      if (vy > -100 && f.airJumps > 0 && b.lastJump > 0.25 && low) {
         out.jump = true;
         b.lastJump = 0;
       } else if (vy > 200 && !f.airDashUsed && f.dashCd <= 0 && Math.abs(stageX - f.chest.x) > 120) out.dash = true;
@@ -115,6 +122,19 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
   // ------------------------------------------------- edge safety
   const aheadGround = m.groundAt(f.chest.x + dir * 70);
   const nearEdge = aheadGround === null;
+
+  // ------------------------------------------------- hazards: duck under swinging blades
+  for (const body of m.world.bodies) {
+    if (body.tag !== 'pendulum') continue;
+    const rel = body.x - f.chest.x;
+    const approaching = Math.sign(body.vx) === -Math.sign(rel) || Math.abs(rel) < 40;
+    if (Math.abs(rel) < 170 && approaching && body.y > -260 && f.onGround) {
+      out.my = 1;
+      out.mx = 0;
+      out.attack = false;
+      return { ...out };
+    }
+  }
 
   // ------------------------------------------------- weapons on the ground
   if (!f.weapon) {
@@ -193,6 +213,13 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
     return { ...out };
   }
 
+  // heavy swings drag you forward: never swing towards a nearby drop
+  const heavy = (f.weapon?.def.mass ?? 0) > 1.5;
+  if (heavy && m.groundAt(f.chest.x + f.facing * 110) === null && f.onGround) {
+    out.mx = -f.facing * 0.6;
+    return { ...out };
+  }
+
   if (inRange && !f.attack && Math.random() < T.aggression) {
     out.mx = f.facing !== dir ? dir : 0;
     out.attack = true;
@@ -222,7 +249,14 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
   const preferred = reach * 0.75;
   if (adx > preferred) {
     out.mx = dir;
-    if (nearEdge && !target.onGround) out.mx = 0;
+    if (nearEdge) {
+      // a gap between us: leap across if there is ground on the other side, else wait
+      const across = m.groundAt(f.chest.x + dir * 190) !== null || m.groundAt(f.chest.x + dir * 260) !== null;
+      if (across && f.onGround && target.onGround && b.lastJump > 0.5) {
+        out.jump = true;
+        b.lastJump = 0;
+      } else if (f.onGround) out.mx = 0;
+    }
     // jump to reach platforms
     if (dy < -120 && f.onGround && b.lastJump > 0.6) {
       out.jump = true;
@@ -235,8 +269,10 @@ export function aiThink(f: Fighter, m: Match, dt: number): Controls {
   } else {
     out.mx = 0;
   }
+  // lean into divine gusts so they don't blow us off the islands
+  if (m.rt.wind !== 0 && f.onGround && m.groundAt(f.chest.x + Math.sign(m.rt.wind) * 110) === null) out.mx = -Math.sign(m.rt.wind);
   // stay off the edge
-  if (m.groundAt(f.chest.x + out.mx * 60) === null && f.onGround) out.mx = 0;
+  if (m.groundAt(f.chest.x + out.mx * 60) === null && f.onGround && !out.jump) out.mx = 0;
   // random hop for liveliness
   if (f.onGround && Math.random() < 0.02 * T.aggression && b.lastJump > 1) {
     out.jump = true;

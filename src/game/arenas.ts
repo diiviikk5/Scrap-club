@@ -111,7 +111,7 @@ export const ARENAS: ArenaDef[] = [
     subtitle: 'Mind the gap. And the gods.',
     desc: 'Three marble islands above the clouds. Divine gusts sweep fighters sideways every few seconds.',
     theme: { skyTop: '#5aa9e6', skyBottom: '#c8e7ff', sun: '#ffffff', far: '#e4f1fb', mid: '#b9d6ee', near: '#8fb6d9', fog: 'rgba(255,255,255,0.35)', accent: '#ffe08a', abyss: '#dbeeff', ambient: 'motes' },
-    spawns: [{ x: -420, y: -40 }, { x: 420, y: -40 }, { x: -200, y: 0 }, { x: 200, y: 0 }],
+    spawns: [{ x: -430, y: -40 }, { x: 430, y: -40 }, { x: -170, y: 0 }, { x: 170, y: 0 }],
     killY: 900,
     blastX: 1350,
     blastTop: -1300,
@@ -121,8 +121,8 @@ export const ARENAS: ArenaDef[] = [
     crowd: false,
     build(world) {
       const center = slab(world, 0, 0, 520, 380, 120, 'stone', 'marble');
-      const left = slab(world, -470, -40, 260, 180, 90, 'stone', 'marble');
-      const right = slab(world, 470, -40, 260, 180, 90, 'stone', 'marble');
+      const left = slab(world, -450, -40, 260, 200, 90, 'stone', 'marble');
+      const right = slab(world, 450, -40, 260, 200, 90, 'stone', 'marble');
       const cloud = plat(world, 0, -230, 200, 22, 'cloud', 'oneway', 'cloud');
       let gustT = 4;
       let dir = 1;
@@ -141,7 +141,7 @@ export const ARENAS: ArenaDef[] = [
             rt.events.push({ type: 'gust', x: dir, y: 0, t });
           }
           const since = t - (rt.events.filter((e) => e.type === 'gust').slice(-1)[0]?.t ?? -99);
-          rt.wind = since < 1.6 ? dir * 900 * Math.sin((since / 1.6) * Math.PI) * (sd ? 1.5 : 1) : 0;
+          rt.wind = since < 1.6 ? dir * 650 * Math.sin((since / 1.6) * Math.PI) * (sd ? 1.5 : 1) : 0;
         },
       };
       return rt;
@@ -306,11 +306,11 @@ export const ARENAS: ArenaDef[] = [
         );
         b.material = 'metal';
         b.tag = 'pendulum';
-        b.data.hazard = { damage: 14, kb: 950 };
+        b.data.hazard = { damage: 9, kb: 620 };
         b.data.pivot = { x: px, y: -620 };
         b.bounce = 0.6;
         world.addBody(b);
-        pends.push({ body: b, px, py: -620, len: 540, phase, amp: 0.9, speed: 1.5 });
+        pends.push({ body: b, px, py: -620, len: 478, phase, amp: 0.9, speed: 1.2 });
       };
       mk(-230, 0);
       mk(230, Math.PI);

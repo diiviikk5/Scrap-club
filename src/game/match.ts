@@ -208,7 +208,7 @@ export class Match implements FighterHost {
     this.world.windX = this.rt.wind;
     for (const f of this.fighters) {
       f.update(sdt, this);
-      if (this.rt.wind !== 0 && f.alive) for (const p of f.parts) this.world.addV(p, this.rt.wind * sdt * (f.onGround ? 0.25 : 1), 0);
+      if (this.rt.wind !== 0 && f.alive) for (const p of f.parts) this.world.addV(p, this.rt.wind * sdt * (f.onGround ? 0.12 : 1), 0);
     }
     for (const w of this.weapons) w.update(sdt);
     this.updateRifts(sdt);
@@ -455,9 +455,9 @@ export class Match implements FighterHost {
       dx = dx * 0.75 + (tvx / tipSpeed) * 0.25;
       dy = dy * 0.75 + (tvy / tipSpeed) * 0.25;
     }
-    let kb = (170 + v.damage * 8.2) * def.knockback * atkKb * charge * kbMul * (0.75 + 0.25 * speedF);
+    let kb = (95 + v.damage * 7.3) * def.knockback * atkKb * charge * kbMul * (0.75 + 0.25 * speedF);
     if (this.suddenDeath) kb *= 1.15;
-    let stun = 0.1 + kb / 1700;
+    let stun = 0.08 + kb / 2000;
     if (def.special === 'bonk') stun *= 2.4;
     v.applyKnockback(dx, dy, kb, p, stun);
     // recoil on attacker
@@ -614,13 +614,13 @@ export class Match implements FighterHost {
           audio.clang(1);
           continue;
         }
-        const dmg = w.def.damage * 1.15 * clamp(sp / 1100, 0.6, 1.4);
+        const dmg = w.def.damage * 0.8 * clamp(sp / 1100, 0.6, 1.3);
         v.damage += dmg;
         v.lastHitBy = w.thrownBy;
         v.lastHitTime = this.time;
         v.hitFlash = 0.12;
         if (w.thrownBy) w.thrownBy.dealt += dmg;
-        const kb = (160 + v.damage * 7) * w.def.knockback;
+        const kb = (100 + v.damage * 6.5) * Math.min(1.4, w.def.knockback);
         v.applyKnockback(vx / sp, vy / sp - 0.45, kb, hit, 0.15 + kb / 1700);
         for (const p of w.particles) this.world.setV(p, -vx * 0.25, -260);
         this.hitstop = 0.06;
